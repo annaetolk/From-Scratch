@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Snake Game</title>
+<link rel="stylesheet" href="css/ai.css">
+
+<style>
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-image: url("/assets/img/snake\ game.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: white;
+  }
+
+  canvas {
+    background: #111827;
+    margin-top: 10px;
+    border-radius: 10px;
+    display: block;
+  }
+
+  button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+  }
+
+  .instructions {
+    background: rgba(255, 255, 255, 0.9);
+    color: black;
+    padding: 5px 15px;
+    border-radius: 10px;
+    width: 320px;
+    margin-bottom: 10px;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    z-index: -1;
+  }
+</style>
+
+</head>
+
+<body>
+
+<h1>🐍 Snake Snacks</h1>
+
+<h2>How to Play</h2>
+
+<div class="instructions">
+    <ul>
+        <li>Use arrow keys to move</li>
+        <li>Eat red squares</li>
+        <li>Avoid walls and yourself</li>
+        <li>Click Start / Restart</li>
+    </ul>
+</div>
+
+<button onclick="startGame()">Start / Restart</button>
+
+<canvas id="game" width="400" height="400"></canvas>
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const box = 20;
+let snake, direction, food, game;
+
+function init() {
+  snake = [{x: 9 * box, y: 9 * box}];
+  direction = "RIGHT";
+
+  food = {
+    x: Math.floor(Math.random() * 20) * box,
+    y: Math.floor(Math.random() * 20) * box
+  };
+}
+
+document.addEventListener("keydown", changeDirection);
+
+function changeDirection(event) {
+  if (event.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+  else if (event.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+  else if (event.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+  else if (event.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+}
+
+function drawRoundedRect(x, y, size, radius, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.roundRect(x, y, size, size, radius);
+  ctx.fill();
+}
+
+function draw() {
+  ctx.fillStyle = "#111827";
+  ctx.fillRect(0, 0, 400, 400);
+
+  // snake
+  for (let i = 0; i < snake.length; i++) {
+    drawRoundedRect(
+      snake[i].x,
+      snake[i].y,
+      box,
+      6,
+      i === 0 ? "#60a5fa" : "#3b82f6"
+    );
+  }
+
+  // food
+  ctx.fillStyle = "red";
+  ctx.fillRect(food.x, food.y, box, box);
+
+  let headX = snake[0].x;
+  let headY = snake[0].y;
+
+  if (direction === "LEFT") headX -= box;
+  if (direction === "RIGHT") headX += box;
+  if (direction === "UP") headY -= box;
+  if (direction === "DOWN") headY += box;
+
+  if (headX === food.x && headY === food.y) {
+    food = {
+      x: Math.floor(Math.random() * 20) * box,
+      y: Math.floor(Math.random() * 20) * box
+    };
+  } else {
+    snake.pop();
+  }
+
+  let newHead = {x: headX, y: headY};
+
+  if (
+    headX < 0 || headY < 0 ||
+    headX >= 400 || headY >= 400 ||
+    collision(newHead, snake)
+  ) {
+    clearInterval(game);
+    alert("Game Over!");
+  }
+
+  snake.unshift(newHead);
+}
+
+function collision(head, array) {
+  for (let i = 0; i < array.length; i++) {
+    if (head.x === array[i].x && head.y === array[i].y) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function startGame() {
+  clearInterval(game);
+  init();
+  game = setInterval(draw, 120);
+}
+</script>
+
+</body>
+</html>
